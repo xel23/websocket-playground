@@ -1,6 +1,7 @@
 const wsConnection = new WebSocket("ws://localhost:9124");
 wsConnection.onopen = function() {
     console.log("Соединение установлено.");
+    wsSend(JSON.stringify({foo: 'bar'}));
 };
 
 wsConnection.onclose = function(event) {
@@ -31,6 +32,3 @@ const wsSend = function(data) {
         wsConnection.send(data);
     }
 };
-
-
-wsSend(JSON.stringify({foo: 'bar'}));
