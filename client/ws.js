@@ -1,20 +1,19 @@
 const wsConnection = new WebSocket("ws://localhost:9124");
 wsConnection.onopen = function() {
-    console.log("Соединение установлено.");
-    wsSend(JSON.stringify({foo: 'bar'}));
+    console.log('Connected');
 };
 
 wsConnection.onclose = function(event) {
     if (event.wasClean) {
-        console.log('Соединение закрыто чисто');
+        console.log('Connected was closed clean');
     } else {
-        console.log('Обрыв соединения'); // например, "убит" процесс сервера
+        console.log('Connection refused');
     }
-    console.log('Код: ' + event.code + ' причина: ' + event.reason);
+    console.log('Code: ' + event.code + ' reason: ' + event.reason);
 };
 
 wsConnection.onerror = function(error) {
-    console.log("Ошибка " + error.message);
+    console.log('Error', error.message);
 };
 
 wsConnection.onmessage = async(event) => {
