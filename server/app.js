@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {request} from 'express';
 import {mainRouter} from './routes/main.routes.js';
 import { WebSocketServer } from 'ws';
 
@@ -11,13 +11,39 @@ const webSocketServer = new WebSocketServer({
     port: 9124
 });
 
-webSocketServer.on('connection', ws => {
-    ws.on('message', m => {
-        const buffer = new Buffer(m);
-        webSocketServer.clients.forEach(client => client.send(buffer.toString()));
+const connections = {};
+let currentId = 0;
+
+function sendToOneUser(target, msgString) {
+    connections[target].send(msgString);
+}
+
+webSocketServer.on('connection', connection => {
+    connections[currentId] = connection;
+    connection.cliendId = currentId;
+    currentId++;
+    connection.send(JSON.stringify({
+        type: 'id',
+        id: connection.cliendId
+    }));
+
+    connection.on('message', function(message) {
+        if (message.type === 'utf8') {
+            console.log("Received Message: " + message);
+            const msg = JSON.parse(message);
+            sendToOneUser(msg.target, message);
+        }
     });
 
-    ws.on("error", e => ws.send(e));
+    connection.on('close', (reason, description) => {
+        delete connections[connection.cliendId];
+        let logMessage = "Connection closed: " + connection.remoteAddress + " (" + reason;
+        if (description !== null && description.length !== 0) {
+            logMessage += ": " + description;
+        }
+        logMessage += ")";
+        console.log(logMessage);
+    });
 });
 
 const PORT = 9123;
