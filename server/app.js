@@ -1,6 +1,17 @@
 import express, {request} from 'express';
 import {mainRouter} from './routes/main.routes.js';
 import { WebSocketServer } from 'ws';
+import TURN from 'node-turn';
+
+const turnServer = new TURN({
+    listeningPort: 7788,
+    authMech: 'long-term',
+    credentials: {
+        webrtc: 'turnserver'
+    }
+});
+
+turnServer.start();
 
 export const app = express();
 
@@ -22,10 +33,13 @@ webSocketServer.on('connection', connection => {
     connections[currentId] = connection;
     connection.cliendId = currentId;
     currentId++;
-    connection.send(JSON.stringify({
-        type: 'id',
-        id: connection.cliendId
-    }));
+
+    Object.keys(connections).forEach(id => {
+        connections[id].send(JSON.stringify({
+            type: 'id',
+            id: connection.cliendId
+        }));
+    });
 
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
