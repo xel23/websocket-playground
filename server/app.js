@@ -26,7 +26,7 @@ const connections = {};
 let currentId = 0;
 
 function sendToOneUser(target, msgString) {
-    connections[target].send(msgString);
+    connections[target]?.send(msgString);
 }
 
 webSocketServer.on('connection', connection => {
@@ -42,11 +42,11 @@ webSocketServer.on('connection', connection => {
     });
 
     connection.on('message', function(message) {
-        if (message.type === 'utf8') {
+        const msg = JSON.parse(message);
+        if (msg.type === 'video-answer') {
             console.log("Received Message: " + message);
-            const msg = JSON.parse(message);
-            sendToOneUser(msg.target, message);
         }
+        sendToOneUser(msg.target, message);
     });
 
     connection.on('close', (reason, description) => {
